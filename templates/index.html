@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Concentration de jus</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Simulation du procédé de concentration de jus</h1>
+    <h2>Schéma du procédé</h2>
+<svg viewBox="0 0 900 300" class="schema" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#546e7a"/>
+        </marker>
+    </defs>
+
+    <!-- Les 5 opérations -->
+    <rect class="boite" x="20" y="110" width="140" height="90" rx="10"/>
+    <rect class="boite" x="200" y="110" width="140" height="90" rx="10"/>
+    <rect class="boite" x="380" y="110" width="140" height="90" rx="10"/>
+    <rect class="boite" x="560" y="110" width="140" height="90" rx="10"/>
+    <rect class="boite" x="740" y="110" width="140" height="90" rx="10"/>
+
+    <!-- Flèches entre les opérations -->
+    <line class="fl" x1="160" y1="155" x2="198" y2="155"/>
+    <line class="fl" x1="340" y1="155" x2="378" y2="155"/>
+    <line class="fl" x1="520" y1="155" x2="558" y2="155"/>
+    <line class="fl" x1="700" y1="155" x2="738" y2="155"/>
+
+    <!-- Entrées (haut) -->
+    <line class="fl" x1="90" y1="52" x2="90" y2="108"/>
+    <text x="90" y="28" text-anchor="middle" class="t">Jus brut</text>
+    <text x="90" y="44" text-anchor="middle">{{ "%.0f"|format(valeurs.m0) }} kg/h</text>
+
+    <line class="fl" x1="270" y1="52" x2="270" y2="108"/>
+    <text x="270" y="28" text-anchor="middle" class="t">Jus concentré</text>
+    <text x="270" y="44" text-anchor="middle">{{ "%.0f"|format(valeurs.mR) }} kg/h</text>
+
+    <!-- Vapeur (haut) -->
+    <line class="fl" x1="630" y1="108" x2="630" y2="52"/>
+    <text x="630" y="28" text-anchor="middle" class="t vap">Vapeur d'eau</text>
+    <text x="630" y="44" text-anchor="middle">{{ "%.0f"|format(resultats.mv) if resultats else "—" }} kg/h</text>
+
+    <!-- Sorties (bas) -->
+    <line class="fl" x1="90" y1="202" x2="90" y2="248"/>
+    <text x="90" y="268" text-anchor="middle" class="t">Résidus</text>
+    <text x="90" y="284" text-anchor="middle">{{ "%.0f"|format(valeurs.residus) }} kg/h</text>
+
+    <line class="fl" x1="810" y1="202" x2="810" y2="248"/>
+    <text x="810" y="268" text-anchor="middle" class="t">Produit final</text>
+    <text x="810" y="284" text-anchor="middle">{{ "%.0f"|format(resultats.m4) if resultats else "—" }} kg/h</text>
+
+    <!-- Texte dans les boîtes -->
+    <text x="90" y="135" text-anchor="middle" class="t">Filtration</text>
+    <text x="90" y="160" text-anchor="middle">m₁ = {{ "%.0f"|format(resultats.m1) if resultats else "—" }} kg/h</text>
+    <text x="90" y="180" text-anchor="middle">x₁ = {{ "%.2f"|format(resultats.x1) if resultats else "—" }} %</text>
+
+    <text x="270" y="135" text-anchor="middle" class="t">Mélange</text>
+    <text x="270" y="160" text-anchor="middle">m₂ = {{ "%.0f"|format(resultats.m2) if resultats else "—" }} kg/h</text>
+    <text x="270" y="180" text-anchor="middle">x₂ = {{ "%.2f"|format(resultats.x2) if resultats else "—" }} %</text>
+
+    <text x="450" y="135" text-anchor="middle" class="t">Chauffage</text>
+    <text x="450" y="160" text-anchor="middle">{{ "%.0f"|format(valeurs.T2) }} → {{ "%.0f"|format(valeurs.T3) }} °C</text>
+    <text x="450" y="180" text-anchor="middle">Q = {{ "%.2f"|format(resultats.Q3) if resultats else "—" }} kW</text>
+
+    <text x="630" y="135" text-anchor="middle" class="t">Évaporation</text>
+    <text x="630" y="160" text-anchor="middle">x = {{ "%.0f"|format(valeurs.x4) }} %</text>
+    <text x="630" y="180" text-anchor="middle">Q = {{ "%.2f"|format(resultats.Q4) if resultats else "—" }} kW</text>
+
+    <text x="810" y="135" text-anchor="middle" class="t">Refroidissement</text>
+    <text x="810" y="160" text-anchor="middle">{{ "%.0f"|format(valeurs.T4) }} → {{ "%.0f"|format(valeurs.T5) }} °C</text>
+    <text x="810" y="180" text-anchor="middle">Q = {{ "%.2f"|format(resultats.Q5) if resultats else "—" }} kW</text>
+</svg>
+    <form method="post" action="/">
+        <h2>Données</h2>
+        <p>Débit de jus brut (kg/h) : <input type="number" step="any" name="m0" value="{{ valeurs.m0 }}"></p>
+        <p>Matières solubles du jus brut (%) : <input type="number" step="any" name="x0" value="{{ valeurs.x0 }}"></p>
+        <p>Particules insolubles filtrées (kg/h) : <input type="number" step="any" name="residus" value="{{ valeurs.residus }}"></p>
+        <p>Apport de jus concentré (kg/h) : <input type="number" step="any" name="mR" value="{{ valeurs.mR }}"></p>
+        <p>Concentration de l'apport (%) : <input type="number" step="any" name="xR" value="{{ valeurs.xR }}"></p>
+        <p>Cp (kJ/(kg·K)) : <input type="number" step="any" name="Cp" value="{{ valeurs.Cp }}"></p>
+        <p>Température initiale T2 (°C) : <input type="number" step="any" name="T2" value="{{ valeurs.T2 }}"></p>
+        <p>Température de chauffage T3 (°C) : <input type="number" step="any" name="T3" value="{{ valeurs.T3 }}"></p>
+        <p>Concentration finale (%) : <input type="number" step="any" name="x4" value="{{ valeurs.x4 }}"></p>
+        <p>Chaleur latente λ (kJ/kg) : <input type="number" step="any" name="lambda_v" value="{{ valeurs.lambda_v }}"></p>
+        <p>Température avant refroidissement T4 (°C) : <input type="number" step="any" name="T4" value="{{ valeurs.T4 }}"></p>
+        <p>Température finale T5 (°C) : <input type="number" step="any" name="T5" value="{{ valeurs.T5 }}"></p>
+        <button type="submit">Calculer</button>
+    </form>
+
+    {% if resultats %}
+    <h2>Résultats</h2>
+    <table border="1" cellpadding="6">
+        <tr><td>Débit après filtration</td><td>{{ "%.2f"|format(resultats.m1) }} kg/h</td></tr>
+        <tr><td>Débit après mélange</td><td>{{ "%.2f"|format(resultats.m2) }} kg/h</td></tr>
+        <tr><td>Concentration après mélange</td><td>{{ "%.2f"|format(resultats.x2) }} %</td></tr>
+        <tr><td>Puissance de chauffage</td><td>{{ "%.2f"|format(resultats.Q3) }} kW</td></tr>
+        <tr><td>Eau évaporée</td><td>{{ "%.2f"|format(resultats.mv) }} kg/h</td></tr>
+        <tr><td>Débit du concentré</td><td>{{ "%.2f"|format(resultats.m4) }} kg/h</td></tr>
+        <tr><td>Puissance d'évaporation</td><td>{{ "%.2f"|format(resultats.Q4) }} kW</td></tr>
+        <tr><td>Puissance de refroidissement</td><td>{{ "%.2f"|format(resultats.Q5) }} kW</td></tr>
+        <tr><td>Erreur du bilan global</td><td>{{ "%.2f"|format(resultats.erreur) }} kg/h</td></tr>
+    </table>
+    {% endif %}
+    
+    <h2>Études paramétriques</h2>
+    <div class="graphique"><canvas id="graphVapeur"></canvas></div>
+    <div class="graphique"><canvas id="graphChauffage"></canvas></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        const courbes = {{ courbes | tojson }};
+
+        new Chart(document.getElementById("graphVapeur"), {
+            type: "line",
+            data: {
+                labels: courbes.x4,
+                datasets: [{
+                    label: "Eau évaporée (kg/h)",
+                    data: courbes.vapeur,
+                    borderColor: "#1565c0",
+                    backgroundColor: "#1565c0",
+                    tension: 0.2
+                }]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: "Concentration finale (%)" } },
+                    y: { title: { display: true, text: "Débit de vapeur (kg/h)" } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById("graphChauffage"), {
+            type: "line",
+            data: {
+                labels: courbes.T3,
+                datasets: [{
+                    label: "Puissance de chauffage (kW)",
+                    data: courbes.chauffage,
+                    borderColor: "#c62828",
+                    backgroundColor: "#c62828",
+                    tension: 0.2
+                }]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: "Température T3 (°C)" } },
+                    y: { title: { display: true, text: "Puissance Q3 (kW)" } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
